@@ -42,14 +42,13 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export default function AuthPage () {
+
   const dispatch = useDispatch()
   const userStatus = useSelector(state => state.user.status)
   const classes = useStyles()
   const [passwordElement, setPasswordElement] = useState(undefined)
   const [emailElement, setEmailElement] = useState(undefined)
   const [errors, setErrors] = useState({})
-
-  if (userStatus === status.LOGGED_IN) return <Redirect to={'/'}/>
 
   const validateEmail = () => {
     if (!emailElement || emailElement.value === '') return 'Cannot be empty'
@@ -72,42 +71,46 @@ export default function AuthPage () {
 
   return (
     <div className={classes.root}>
-      <Paper
-        className={classNames([
-          classes.paper,
-          userStatus === status.LOGGING_IN && classes.disabled
-        ])}
-      >
-        <Typography variant={'h5'} className={classes.title}>Firebase Login</Typography>
-        <TextField
-          type={'email'}
-          required
-          label="Email"
-          error={!!errors.email}
-          helperText={errors.email || ' '}
-          fullWidth
-          onChange={({target}) => setEmailElement(target)}
-          onFocus={() => setErrors({...errors, email: undefined})}
-        />
-        <TextField
-          type={'password'}
-          required
-          label="Password"
-          error={!!errors.password}
-          helperText={errors.password || ' '}
-          fullWidth
-          onChange={({target}) => setPasswordElement(target)}
-          onFocus={() => setErrors({...errors, password: undefined})}
-        />
-        <Button
-          className={classes.button}
-          variant={'contained'}
-          color={'primary'}
-          onClick={handleLoginClick}
+      {!userStatus ? (
+        <Typography>Checking if user logged in...</Typography>
+      ) : (
+        <Paper
+          className={classNames([
+            classes.paper,
+            userStatus === status.LOGGING_IN && classes.disabled
+          ])}
         >
-          Login
-        </Button>
-      </Paper>
+          <Typography variant={'h5'} className={classes.title}>Firebase Login</Typography>
+          <TextField
+            type={'email'}
+            required
+            label="Email"
+            error={!!errors.email}
+            helperText={errors.email || ' '}
+            fullWidth
+            onChange={({target}) => setEmailElement(target)}
+            onFocus={() => setErrors({...errors, email: undefined})}
+          />
+          <TextField
+            type={'password'}
+            required
+            label="Password"
+            error={!!errors.password}
+            helperText={errors.password || ' '}
+            fullWidth
+            onChange={({target}) => setPasswordElement(target)}
+            onFocus={() => setErrors({...errors, password: undefined})}
+          />
+          <Button
+            className={classes.button}
+            variant={'contained'}
+            color={'primary'}
+            onClick={handleLoginClick}
+          >
+            Login
+          </Button>
+        </Paper>
+      )}
     </div>
   )
 }

@@ -2,46 +2,33 @@ import React from 'react'
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import { applyMiddleware, combineReducers, createStore } from 'redux'
-import { user } from './state/reducers'
+import { order, user } from './state/reducers'
 import thunk from 'redux-thunk'
 import AuthPage from './pages/AuthPage'
 import OrdersPage from './pages/OrdersPage'
 import OrderDetailsPage from './pages/OrderDetailsPage'
 import PageNotFound from './pages/PageNotFound'
 import { Provider } from 'react-redux'
-import { initFirebase } from './firebase'
+import { initFirebase, onAuthStateChanged } from './firebase'
 import { status } from './user'
+import { setUserStatus } from './state/actions'
+import AppRouter from './AppRouter'
 
 const store = createStore(
-  combineReducers({user}),
-  {user: {}},
+  combineReducers({user, order}),
+  {user: {status: undefined}, order: {}},
   applyMiddleware(thunk),
 )
 
 initFirebase()
+onAuthStateChanged(user => {
+  store.dispatch(setUserStatus(user ? status.LOGGED_IN : status.LOGGED_OUT))
+})
 
 function App () {
-  const checkUserLoggedIn = () => store.getState().user.status === status.LOGGED_IN
-
   return (
     <Provider store={store}>
-      <BrowserRouter>
-        <Switch>
-          <Route exact path="/">
-            {() => (checkUserLoggedIn() ? <Redirect to={'/orders'}/> : <Redirect to={'/auth'}/>)}
-          </Route>
-          <Route path="/auth">
-            {() => (!checkUserLoggedIn() ? <AuthPage/> : <Redirect to={'/'}/>)}
-          </Route>
-          <Route path="/orders/:id">
-            {() => (checkUserLoggedIn() ? <OrderDetailsPage/> : <Redirect to={'/'}/>)}
-          </Route>
-          <Route path="/orders">
-            {() => (checkUserLoggedIn() ? <OrdersPage/> : <Redirect to={'/'}/>)}
-          </Route>
-          <Route><PageNotFound/></Route>
-        </Switch>
-      </BrowserRouter>
+      <AppRouter />
     </Provider>
   )
 }
